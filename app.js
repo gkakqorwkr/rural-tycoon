@@ -245,7 +245,18 @@ class GameManager {
             this.inventory.tools = { purifier: dt.inventory?.tools?.purifier || 0 };
             
             this.unlockedSeeds = dt.unlockedSeeds || this.unlockedSeeds;
+            
+            // 기존 세이브파일 호환을 위한 단계별 자동 해금
+            if (!this.unlockedSeeds.includes('greenOnion')) this.unlockedSeeds.push('greenOnion');
+            if (!this.unlockedSeeds.includes('carrot')) this.unlockedSeeds.push('carrot');
+            if (this.day >= 4 && !this.unlockedSeeds.includes('cabbage')) this.unlockedSeeds.push('cabbage');
+            if (this.day >= 5 && !this.unlockedSeeds.includes('gmoCorn')) this.unlockedSeeds.push('gmoCorn');
+            if (this.day >= 8 && !this.unlockedSeeds.includes('potato')) this.unlockedSeeds.push('potato');
+            if (this.day >= 12 && !this.unlockedSeeds.includes('gmoWatermelon')) this.unlockedSeeds.push('gmoWatermelon');
+            if (this.day >= 15 && !this.unlockedSeeds.includes('strawberry')) this.unlockedSeeds.push('strawberry');
+            
             this.affinity = dt.affinity || this.affinity;
+            if (this.affinity?.market >= 5 && !this.unlockedSeeds.includes('goldenGinseng')) this.unlockedSeeds.push('goldenGinseng');
             this.marketPrices = dt.marketPrices || null;
 
             if (dt.crops && dt.crops.length === interactionManager.crops.length) {
