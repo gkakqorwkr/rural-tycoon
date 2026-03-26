@@ -31,14 +31,14 @@ const PORTRAITS = {
 
 // 씨앗/작물 메타 데이터 (성장 시간을 단축시켜 장기 투자를 유도)
 const SEED_DATA = {
-    greenOnion: { id: 'greenOnion', name: "토종 대파", cost: 5, sellPrice: 15, isGMO: false, color: "#99d98c", growSecs: 180 },            // 3분
-    carrot: { id: 'carrot', name: "토종 당근", cost: 15, sellPrice: 40, isGMO: false, color: "#fc8c03", growSecs: 420 },                 // 7분 (1일)
-    cabbage: { id: 'cabbage', name: "고랭지 배추", cost: 35, sellPrice: 100, isGMO: false, color: "#52b788", growSecs: 600 },            // 10분
-    potato: { id: 'potato', name: "시골 감자", cost: 60, sellPrice: 200, isGMO: false, color: "#d1a738", growSecs: 900 },                // 15분 (2.1일)
-    strawberry: { id: 'strawberry', name: "하우스 딸기", cost: 150, sellPrice: 550, isGMO: false, color: "#e63946", growSecs: 1200 },    // 20분 (2.8일)
-    gmoCorn: { id: 'gmoCorn', name: "[GMO] 맹독 옥수수", cost: 60, sellPrice: 300, isGMO: true, color: "#ff2200", growSecs: 180, polRate: 0.33 },  // 3분 (총 누적 60. 수확시 파멸위기)
-    gmoWatermelon: { id: 'gmoWatermelon', name: "[GMO] 흑수박", cost: 400, sellPrice: 2000, isGMO: true, color: "#3c096c", growSecs: 420, polRate: 0.25 }, // 7분 (총 누적 105. 생장 중 강제 정화 1회 필수)
-    goldenGinseng: { id: 'goldenGinseng', name: "전설의 산삼", cost: 500, sellPrice: 3500, isGMO: false, color: "#d8f3dc", growSecs: 1800 } // 무려 30분 (4.2일 존버)
+    greenOnion: { id: 'greenOnion', name: "토종 대파", cost: 5, sellPrice: 15, isGMO: false, color: "#99d98c", growSecs: 60 },            // 1분
+    carrot: { id: 'carrot', name: "토종 당근", cost: 15, sellPrice: 40, isGMO: false, color: "#fc8c03", growSecs: 140 },                 // 2.3분
+    cabbage: { id: 'cabbage', name: "고랭지 배추", cost: 35, sellPrice: 100, isGMO: false, color: "#52b788", growSecs: 200 },            // 3.3분
+    potato: { id: 'potato', name: "시골 감자", cost: 60, sellPrice: 200, isGMO: false, color: "#d1a738", growSecs: 300 },                // 5분
+    strawberry: { id: 'strawberry', name: "하우스 딸기", cost: 150, sellPrice: 550, isGMO: false, color: "#e63946", growSecs: 400 },    // 6.6분
+    gmoCorn: { id: 'gmoCorn', name: "[GMO] 맹독 옥수수", cost: 60, sellPrice: 300, isGMO: true, color: "#ff2200", growSecs: 60, polRate: 0.33 },  // 1분 (수확시 오염 폭발)
+    gmoWatermelon: { id: 'gmoWatermelon', name: "[GMO] 흑수박", cost: 400, sellPrice: 2000, isGMO: true, color: "#3c096c", growSecs: 140, polRate: 0.25 }, // 2.3분 
+    goldenGinseng: { id: 'goldenGinseng', name: "전설의 산삼", cost: 500, sellPrice: 3500, isGMO: false, color: "#d8f3dc", growSecs: 600 } // 10분
 };
 
 const STORY_EVENTS = {
@@ -49,7 +49,8 @@ const STORY_EVENTS = {
         {speaker: "옆집 김씨 이장님", img: 'mayor', text: "요새 아주 성실하구만! 내 권한으로 장터에 [고랭지 배추] 물량을 좀 풀었지.\n시간은 걸려도 돈은 꽤 될겨!"}
     ],
     5: [
-        {speaker: "태산 코퍼레이션 에이전트", img: 'corp', text: "저희 고수익 [GMO 맹독 옥수수]를 제안합니다.\n돈은 엄청나게 벌리겠지만... 땅이 오염되어 썩는 건 감수하셔야 할 겁니다."}
+        {speaker: "태산 코퍼레이션 에이전트", img: 'corp', text: "저희 고수익 [GMO 맹독 옥수수]를 제안합니다.\n돈은 엄청나게 벌리겠지만... 땅이 오염되어 썩는 건 감수하셔야 할 겁니다."},
+        {speaker: "수리공 박씨 아재", img: 'mechanic', text: "어이 촌장! 감자나 딸기 같이 늦게 크는 놈들 속터지지?\n내 상점에 [고성능 비료]를 들여놨으니 와서 사가라고!"}
     ],
     12: [
         {speaker: "태산 코퍼레이션 에이전트", img: 'corp', text: "농기구 점의 정화 캡슐 따위를 믿고 농사하시는군요?\n그럼 궁극의 유전자 조작 과일, [GMO 흑수박]을 상점에 올려두겠습니다.\n수박이 자라면서 뿜어내는 맹독성에 밭이 버텨야 할 텐데요? 후후.."}
@@ -180,7 +181,7 @@ class GameManager {
         this.elapsedTimeMs = 0; 
         
         this.weather = "Clear";
-        this.inventory = { seeds: {greenOnion: 3, carrot: 0, cabbage: 0, potato: 0, strawberry: 0, gmoCorn: 0, gmoWatermelon: 0, goldenGinseng: 0}, crops: {greenOnion: 0, carrot: 0, cabbage: 0, potato: 0, strawberry: 0, gmoCorn: 0, gmoWatermelon: 0, goldenGinseng: 0}, tools: {purifier: 0} };
+        this.inventory = { seeds: {greenOnion: 3, carrot: 0, cabbage: 0, potato: 0, strawberry: 0, gmoCorn: 0, gmoWatermelon: 0, goldenGinseng: 0}, crops: {greenOnion: 0, carrot: 0, cabbage: 0, potato: 0, strawberry: 0, gmoCorn: 0, gmoWatermelon: 0, goldenGinseng: 0}, tools: {purifier: 0, fertilizer: 0} };
         this.unlockedSeeds = ['greenOnion', 'carrot'];
         
         this.affinity = { hardware: 0, market: 0, park: 0 };
@@ -223,7 +224,8 @@ class GameManager {
                 isPlanted: c.isPlanted,
                 type: c.type,
                 growthLevel: c.growthLevel,
-                pollution: c.pollution
+                pollution: c.pollution,
+                hasFertilizer: c.hasFertilizer
             }))
         };
         localStorage.setItem(SAVE_DATA_KEY, JSON.stringify(payload));
@@ -242,7 +244,7 @@ class GameManager {
             // 병합 복구
             this.inventory.seeds = { ...this.inventory.seeds, ...(dt.inventory.seeds || {}) };
             this.inventory.crops = { ...this.inventory.crops, ...(dt.inventory.crops || {}) };
-            this.inventory.tools = { purifier: dt.inventory?.tools?.purifier || 0 };
+            this.inventory.tools = { purifier: dt.inventory?.tools?.purifier || 0, fertilizer: dt.inventory?.tools?.fertilizer || 0 };
             
             this.unlockedSeeds = dt.unlockedSeeds || this.unlockedSeeds;
             
@@ -266,6 +268,7 @@ class GameManager {
                     c.type = cd.type;
                     c.growthLevel = cd.growthLevel;
                     c.pollution = cd.pollution;
+                    c.hasFertilizer = cd.hasFertilizer || false;
                     c.render();
                 });
             }
@@ -415,6 +418,12 @@ class GameManager {
         document.getElementById('player-inventory').innerHTML = invenHTML;
         interactionManager.updateSeedTools();
         this.updateTimeUI();
+        
+        if (this.day >= 5) {
+            document.getElementById('buy-fertilizer-box').style.display = 'flex';
+        } else {
+            document.getElementById('buy-fertilizer-box').style.display = 'none';
+        }
     }
 
     triggerEnding() {
@@ -461,6 +470,7 @@ class Crop {
         this.isPlanted = false;
         this.type = null;
         this.growthLevel = 0;
+        this.hasFertilizer = false;
         this.render();
     }
 
@@ -481,6 +491,8 @@ class Crop {
         if (gm.weather === "Heatwave") growthPerSec *= 0.5; 
         if (gm.weather === "Rain") growthPerSec *= 1.5; 
         
+        if (this.hasFertilizer) growthPerSec *= 2.0;
+
         if (this.pollution > 40) growthPerSec *= 0.3; 
         if (this.pollution > 80) return; 
 
@@ -514,8 +526,9 @@ class Crop {
                 this.ui.innerHTML = "🌟수확가능";
                 this.ui.style.boxShadow = "0 0 10px white";
             } else {
-                this.ui.innerHTML = `${this.growthLevel.toFixed(1)}%`;
-                this.ui.style.boxShadow = "none";
+                let badge = this.hasFertilizer ? "✨" : "";
+                this.ui.innerHTML = `${badge}${this.growthLevel.toFixed(1)}%`;
+                this.ui.style.boxShadow = this.hasFertilizer ? "0 0 8px #0077b6" : "none";
             }
         } else {
             this.ui.style.backgroundColor = ""; 
@@ -614,6 +627,18 @@ class MarketManager {
                 alert("150G가 필요합니다.");
             }
         }
+        else if(toolId === "fertilizer") {
+            const cost = 300;
+            if(gm.money >= cost) {
+                gm.money -= cost;
+                gm.inventory.tools.fertilizer++;
+                gm.updateUI();
+                gm.saveDataLocally();
+                logger.log("성장을 두 배로 뻥튀기 해줄 고성능 비료를 구매했습니다!");
+            } else {
+                alert("300G가 필요합니다.");
+            }
+        }
     }
 }
 
@@ -662,13 +687,28 @@ class InteractionManager {
             }
         }
 
-        // 2. 도구 (정화 캡슐)
+        // 2. 도구 (정화 캡슐 & 비료)
         if(gm.inventory.tools.purifier > 0) {
             const btn = document.createElement('button');
             btn.className = `tool-btn ${this.currentTool === 'tool_purifier' ? 'active':''}`;
             btn.style.border = "3px solid #02c39a";
             btn.innerHTML = `<span style="color:#02c39a;">🟢 맹독 살균 장치 (남은 캡슐:${gm.inventory.tools.purifier})</span>`;
             btn.dataset.tool = 'tool_purifier';
+            
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.currentTool = btn.dataset.tool;
+            });
+            c.appendChild(btn);
+        }
+
+        if(gm.inventory.tools.fertilizer > 0) {
+            const btn = document.createElement('button');
+            btn.className = `tool-btn ${this.currentTool === 'tool_fertilizer' ? 'active':''}`;
+            btn.style.border = "3px solid #0077b6";
+            btn.innerHTML = `<span style="color:#0077b6;">✨ 고성능 비료 (남은 수량:${gm.inventory.tools.fertilizer})</span>`;
+            btn.dataset.tool = 'tool_fertilizer';
             
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
@@ -734,6 +774,20 @@ class InteractionManager {
                     crop.pollution = 0; // 정화 완료!
                     crop.render();
                     gm.updateUI();
+                }
+            }
+        }
+        else if (this.currentTool === "tool_fertilizer") {
+            if (crop.isPlanted && crop.growthLevel < 100 && !crop.hasFertilizer) {
+                if (['potato', 'strawberry', 'gmoWatermelon', 'goldenGinseng'].includes(crop.type)) {
+                    if (gm.inventory.tools.fertilizer > 0) {
+                        gm.inventory.tools.fertilizer--;
+                        crop.hasFertilizer = true;
+                        crop.render();
+                        gm.updateUI();
+                    }
+                } else {
+                    alert("이 비료는 감자, 딸기, 흑수박, 산삼 등 후반 작물에만 효과가 있습니다.");
                 }
             }
         }
