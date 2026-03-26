@@ -538,20 +538,25 @@ class MarketManager {
         gm.unlockedSeeds.forEach(seedId => {
             const seed = SEED_DATA[seedId];
             const tp = gm.marketPrices[seedId];
+            
+            // 시세 변동률을 그대로 모종 구입가에도 똑바로 반영 (최소 1G 보장)
+            const currentCost = Math.max(1, Math.round(seed.cost * (1 + tp.fluct)));
 
             let badgeHtml = `<span class="price-flat">보합동결</span>`;
-            if (tp.fluct >= 0.01) badgeHtml = `<span class="price-up">🔺 매입가 폭등 (+${(tp.fluct*100).toFixed(0)}%)</span>`;
-            if (tp.fluct <= -0.01) badgeHtml = `<span class="price-down">🔻 시세 대폭락 (${(tp.fluct*100).toFixed(0)}%)</span>`;
+            if (tp.fluct >= 0.01) badgeHtml = `<span class="price-up">🔺 시세 폭등 (+${(tp.fluct*100).toFixed(0)}%)</span>`;
+            if (tp.fluct <= -0.01) badgeHtml = `<span class="price-down">🔻 시세 대출혈 (${(tp.fluct*100).toFixed(0)}%)</span>`;
 
             const div = document.createElement('div');
             div.className = 'shop-item';
             div.innerHTML = `
                 <div style="display:flex; flex-direction:column;">
-                    <span style="font-size:1.05rem; color:#1d3557; border-bottom:1px solid #ddd;"><b>${seed.name}</b> / 구근:${seed.cost}G</span>
-                    <span style="margin-top:4px;">현재가격: <strong style="font-size:1.2rem;">${tp.price}</strong> G</span>
-                    <span style="font-size:0.8rem;">${badgeHtml}</span>
+                    <span style="font-size:1.05rem; color:#1d3557; border-bottom:1px dashed #ddd; padding-bottom:3px;">
+                        <b>${seed.name}</b> (매수가: <strong style="color:#d62828;">${currentCost}</strong> G)
+                    </span>
+                    <span style="margin-top:5px;">수확 매도가: <strong style="font-size:1.2rem;">${tp.price}</strong> G</span>
+                    <span style="font-size:0.85rem;">${badgeHtml}</span>
                 </div>
-                <button class="buy-btn" onclick="marketManager.buySeed('${seedId}')">묘목<br>투자</button>
+                <button class="buy-btn" onclick="marketManager.buySeed('${seedId}')">종묘<br>매수</button>
             `;
             this.stockElement.appendChild(div);
         });
@@ -559,13 +564,17 @@ class MarketManager {
 
     buySeed(seedId) {
         const seed = SEED_DATA[seedId];
-        if (gm.money >= seed.cost) {
-            gm.money -= seed.cost;
+        // 변동 시세 기준가 적용
+        const tp = gm.marketPrices[seedId];
+        const currentCost = Math.max(1, Math.round(seed.cost * (1 + tp.fluct)));
+
+        if (gm.money >= currentCost) {
+            gm.money -= currentCost;
             gm.inventory.seeds[seedId]++;
             gm.updateUI();
             gm.saveDataLocally();
         } else {
-            alert("씨앗 하나 살 자본금도 다 떨어졌습니다!");
+            alert(`투자는 신중히! 자본금이 부족합니다. (현재가: ${currentCost}G)`);
         }
     }
 
