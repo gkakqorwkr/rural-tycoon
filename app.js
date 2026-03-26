@@ -12,7 +12,7 @@ class VirtualFileLogger {
 const logger = new VirtualFileLogger();
 
 // --- 1. 환경 변수 및 게임 메타 데이터 ---
-const DAY_DURATION_MS = 60000; // 1분 = 1일 (총 30분 풀타임 플레이 구조)
+const DAY_DURATION_MS = 420000; // 7분 = 1일 (총 3.5시간 풀타임 방치형 플레이 구조)
 const TICK_RATE_MS = 1000; 
 const SAVE_DATA_KEY = "Farming_V3_SaveData";
 
@@ -29,26 +29,33 @@ const PORTRAITS = {
     merchant: getKoreanSVG('👩‍🌾', '#e07a5f')    
 };
 
-// 씨앗/작물 메타 데이터 (1분 체제에 맞춘 폭발적 생장 속도)
+// 씨앗/작물 메타 데이터 (성장 시간을 단축시켜 장기 투자를 유도)
 const SEED_DATA = {
-    carrot: { id: 'carrot', name: "토종 당근", cost: 10, sellPrice: 20, isGMO: false, color: "#fc8c03", growSecs: 20 }, 
-    potato: { id: 'potato', name: "시골 감자", cost: 25, sellPrice: 55, isGMO: false, color: "#d1a738", growSecs: 35 }, 
-    gmoCorn: { id: 'gmoCorn', name: "[GMO] 황금 옥수수", cost: 60, sellPrice: 250, isGMO: true, color: "#ff2200", growSecs: 10 },
-    goldenGinseng: { id: 'goldenGinseng', name: "전설의 산삼", cost: 150, sellPrice: 1000, isGMO: false, color: "#d8f3dc", growSecs: 50 } 
+    greenOnion: { id: 'greenOnion', name: "토종 대파", cost: 5, sellPrice: 15, isGMO: false, color: "#99d98c", growSecs: 180 },            // 3분
+    carrot: { id: 'carrot', name: "토종 당근", cost: 15, sellPrice: 40, isGMO: false, color: "#fc8c03", growSecs: 420 },                 // 7분 (1일)
+    cabbage: { id: 'cabbage', name: "고랭지 배추", cost: 35, sellPrice: 100, isGMO: false, color: "#52b788", growSecs: 600 },            // 10분
+    potato: { id: 'potato', name: "시골 감자", cost: 60, sellPrice: 200, isGMO: false, color: "#d1a738", growSecs: 900 },                // 15분 (2.1일)
+    strawberry: { id: 'strawberry', name: "하우스 딸기", cost: 150, sellPrice: 550, isGMO: false, color: "#e63946", growSecs: 1200 },    // 20분 (2.8일)
+    gmoCorn: { id: 'gmoCorn', name: "[GMO] 맹독 옥수수", cost: 60, sellPrice: 300, isGMO: true, color: "#ff2200", growSecs: 180, polRate: 0.33 },  // 3분 (총 누적 60. 수확시 파멸위기)
+    gmoWatermelon: { id: 'gmoWatermelon', name: "[GMO] 흑수박", cost: 400, sellPrice: 2000, isGMO: true, color: "#3c096c", growSecs: 420, polRate: 0.25 }, // 7분 (총 누적 105. 생장 중 강제 정화 1회 필수)
+    goldenGinseng: { id: 'goldenGinseng', name: "전설의 산삼", cost: 500, sellPrice: 3500, isGMO: false, color: "#d8f3dc", growSecs: 1800 } // 무려 30분 (4.2일 존버)
 };
 
 const STORY_EVENTS = {
     1: [
-        {speaker: "최첨단 AI 도우미", img: 'ai', text: "시스템 부팅 완료. 귀농 체험 기간은 앞으로 30일(30분) 간 진행됩니다.\n농산물 시가는 우측 상단 전광판에서 주식처럼 매일 변동됩니다.\n지금 즉시 당근을 심어 자산을 축적하십시오."}
+        {speaker: "최첨단 AI 도우미", img: 'ai', text: "시스템 부팅 완료. 앞으로 30일(약 3.5시간) 간 귀농 생활이 진행됩니다.\n성장이 빠른 [토종 대파]를 밭에 심고 여유를 즐기십시오."}
     ],
-    2: [
-        {speaker: "옆집 김씨 이장님", img: 'mayor', text: "아이고~ 반가워 청년! 내 권한으로 장터에 [시골 감자]를 풀었어!\n날씨를 잘 보고 시세가 훌쩍 뛸 때 내다 팔면 부자가 될겨!"}
+    4: [
+        {speaker: "옆집 김씨 이장님", img: 'mayor', text: "요새 아주 성실하구만! 내 권한으로 장터에 [고랭지 배추] 물량을 좀 풀었지.\n시간은 걸려도 돈은 꽤 될겨!"}
     ],
-    3: [
-        {speaker: "태산 코퍼레이션 에이전트", img: 'corp', text: "저희 10초 완성 [GMO 황금 옥수수]를 제안하러 왔습니다.\n돈은 엄청나게 벌리겠지만... 땅이 오염되어 썩는 건 감수하셔야 할 겁니다."}
+    5: [
+        {speaker: "태산 코퍼레이션 에이전트", img: 'corp', text: "저희 고수익 [GMO 맹독 옥수수]를 제안합니다.\n돈은 엄청나게 벌리겠지만... 땅이 오염되어 썩는 건 감수하셔야 할 겁니다."}
+    ],
+    12: [
+        {speaker: "태산 코퍼레이션 에이전트", img: 'corp', text: "농기구 점의 정화 캡슐 따위를 믿고 농사하시는군요?\n그럼 궁극의 유전자 조작 과일, [GMO 흑수박]을 상점에 올려두겠습니다.\n수박이 자라면서 뿜어내는 맹독성에 밭이 버텨야 할 텐데요? 후후.."}
     ],
     15: [
-        {speaker: "최첨단 AI 도우미", img: 'ai', text: "경고: 계약 기간(30일)의 절반이 경과했습니다.\n엔딩 산출을 위해 당신의 잔고와 밭의 오염도를 누적 계산 중입니다."}
+        {speaker: "최첨단 AI 도우미", img: 'ai', text: "경고: 장기 계약(30일)의 절반이 경과했습니다.\n엔딩 산출(총 자산 및 오염도)을 위해 당신의 활동을 평가 중입니다."}
     ]
 };
 
@@ -173,8 +180,8 @@ class GameManager {
         this.elapsedTimeMs = 0; 
         
         this.weather = "Clear";
-        this.inventory = { seeds: {carrot: 3, potato: 0, gmoCorn: 0, goldenGinseng: 0}, crops: {carrot: 0, potato: 0, gmoCorn: 0, goldenGinseng: 0}, tools: {purifier: 0} };
-        this.unlockedSeeds = ['carrot'];
+        this.inventory = { seeds: {greenOnion: 3, carrot: 0, cabbage: 0, potato: 0, strawberry: 0, gmoCorn: 0, gmoWatermelon: 0, goldenGinseng: 0}, crops: {greenOnion: 0, carrot: 0, cabbage: 0, potato: 0, strawberry: 0, gmoCorn: 0, gmoWatermelon: 0, goldenGinseng: 0}, tools: {purifier: 0} };
+        this.unlockedSeeds = ['greenOnion', 'carrot'];
         
         this.affinity = { hardware: 0, market: 0, park: 0 };
         this.marketPrices = null; // 주식 시세 전광판 데이터
@@ -338,8 +345,11 @@ class GameManager {
         this.calculateDailyMarket();
 
         // 스크립트 해금
-        if (this.day === 2 && !this.unlockedSeeds.includes('potato')) this.unlockedSeeds.push('potato');
-        if (this.day === 3 && !this.unlockedSeeds.includes('gmoCorn')) this.unlockedSeeds.push('gmoCorn');
+        if (this.day === 4 && !this.unlockedSeeds.includes('cabbage')) this.unlockedSeeds.push('cabbage');
+        if (this.day === 5 && !this.unlockedSeeds.includes('gmoCorn')) this.unlockedSeeds.push('gmoCorn');
+        if (this.day === 8 && !this.unlockedSeeds.includes('potato')) this.unlockedSeeds.push('potato');
+        if (this.day === 12 && !this.unlockedSeeds.includes('gmoWatermelon')) this.unlockedSeeds.push('gmoWatermelon');
+        if (this.day === 15 && !this.unlockedSeeds.includes('strawberry')) this.unlockedSeeds.push('strawberry');
         
         marketManager.renderShop();
         dialogueManager.triggerEvent(this.day);
@@ -464,7 +474,9 @@ class Crop {
         if (this.pollution > 80) return; 
 
         if (scData.isGMO) {
-            this.pollution += 2.0 * secTick; // 파종 기간 내내 오염도 방출
+            // 늘어난 스케일에 맞춰 개별 오염도 방출 적용
+            const pRate = scData.polRate || 0.2;
+            this.pollution += pRate * secTick; 
         }
 
         this.growthLevel += growthPerSec * secTick;
