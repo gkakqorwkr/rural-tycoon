@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>귀농 일기: 주식형 경제 타이쿤</title>
+    <!-- 둥근모 폰트 (스타듀밸리 느낌의 레트로 픽셀 한글 폰트 적용) -->
+    <link href="https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@1.530/neodgm/style.css" rel="stylesheet">
+    <!-- 기본 버튼 및 정보창용 Jua 폰트 -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="top-bar" style="padding-top: 20px;">
+        <div id="time-bar-container">
+            <div id="time-bar-fill"></div>
+            <span id="time-text">Day 1 - 00:00 (1분=1일) | 총 30일</span>
+        </div>
+        <button class="sys-btn" onclick="GameManager.resetSave()">초기화 (리셋)</button>
+    </header>
+
+    <div class="layout">
+        <!-- 좌측: AI 비서 단말기 -->
+        <aside class="wooden-panel" id="ai-panel">
+            <img src="file:///C:/Users/A/.gemini/antigravity/brain/87daa3e6-83e7-471a-bda7-3f5c845a74ca/rural_ai_terminal_sprite_1774497806912.png" id="ai-terminal-img" alt="낡은 AI 책상">
+            <div class="terminal-screen" id="ai-chat">
+                > 시스템 접속 대기 중...
+            </div>
+            <div style="margin-top:20px; color:#582f0e; font-family:'DungGeunMo', sans-serif;">
+                <strong>현재 외기/일조량 정보</strong><br>
+                <div id="weather-status">연결 중...</div>
+            </div>
+        </aside>
+
+        <!-- 중앙 패널 (농장-지도 멀티 뷰) -->
+        <main class="main-container">
+            <!-- 시점 스위칭 탭 -->
+            <div class="nav-tabs">
+                <button class="tab-btn active" id="btn-tab-farm" onclick="window.appSwitchScreen('farm')">🌾 내 농장 뷰</button>
+                <button class="tab-btn" id="btn-tab-map" onclick="window.appSwitchScreen('map')">🗺️ 마을 지도 탐험</button>
+            </div>
+            
+            <!-- 1. 농장 화면 -->
+            <div id="view-farm" class="view-content active">
+                <div class="farm-grid" id="farm">
+                    <!-- app.js 동적 렌더링 영역 -->
+                </div>
+                <!-- 조작 도구 벨트 -->
+                <div id="tool-belt">
+                    <button class="tool-btn active" data-tool="harvest">🔪 낫 (수확/잡초제거)</button>
+                    <div id="seed-tools-container" style="display:inline-block;"></div>
+                </div>
+            </div>
+
+            <!-- 2. 마을 화면 -->
+            <div id="view-map" class="view-content" style="background:#e9edc9; text-align:center;">
+                <h2 style="font-family:'DungGeunMo'; margin-top:30px; font-size:1.8rem; color:#1d3557;">마을의 어느 곳을 가볼까요?</h2>
+                <p style="font-family:'Jua'; color:#4a3f35; font-size:1.2rem;">구역을 클릭해 이웃 주민들과 호감도를 쌓아보세요. (1일 1회 특수 이벤트)</p>
+                <div class="map-grid">
+                    <div class="map-card" onclick="visitLocation('hardware')">
+                        <div class="map-icon">🔧</div>
+                        <h3>동네 철물점</h3>
+                        <p>수리공 박씨 아재</p>
+                    </div>
+                    <div class="map-card" onclick="visitLocation('market')">
+                        <div class="map-icon">🛒</div>
+                        <h3>어귀 5일장</h3>
+                        <p>시장 아주머니 / 이장님</p>
+                    </div>
+                    <div class="map-card" onclick="visitLocation('park')">
+                        <div class="map-icon">🌲</div>
+                        <h3>시민 공원</h3>
+                        <p>우연한 만남 / 조우</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- 우측 패널: 주식 시세 가판대 및 인벤토리 -->
+        <aside class="wooden-panel" id="market-panel" style="width: 350px;">
+            <div class="wooden-sign" style="padding: 10px;">
+                <h2 style="font-size:1.2rem; color:#d62828;">📉 변동 거래소 (Day <span id="market-day">1</span>)</h2>
+                <div id="market-stock" style="font-size:0.95rem;"></div>
+                <button id="btn-sell-all" class="sell-btn">수확물 풀매도 (달러화)</button>
+            </div>
+            
+            <div class="wooden-sign">
+                <h2>💰 예금 잔고: <span id="player-money">100</span> G</h2>
+                <h3 style="margin:5px 0; font-size:1.1rem; color:#1d3557;">[ 내 가방 ]</h3>
+                <div id="player-inventory" class="inventory-box">텅 빔</div>
+                
+                <hr style="border: 1px dashed #b08d6a; margin:15px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#ffebb3; padding:8px; border-radius:4px; border:2px inset #cc9952;">
+                    <span style="font-size:1rem; font-weight:bold; color:#2a9d8f;">🟢 정화 캡슐 (150G)</span>
+                    <button class="buy-btn" onclick="marketManager.buyTool('purifier')">지급받기</button>
+                </div>
+                <p style="font-size:0.8rem; margin:5px 0 0 0; color:#4a3f35; line-height:1.2;">* 오염(☠️)된 밭에 뿌려 즉각적으로 맹독을 살균합니다.</p>
+            </div>
+        </aside>
+    </div>
+
+    <!-- 30일 멀티 엔딩 모달 스크린 -->
+    <div id="ending-screen" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(26,26,26, 0.95); z-index: 99999; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white;">
+        <h1 id="ending-title" style="font-family:'DungGeunMo', sans-serif; font-size: 4rem; margin-bottom: 20px; text-shadow:4px 4px 0 #000;">농가 결산</h1>
+        <p id="ending-desc" style="font-family:'Jua', sans-serif; font-size: 1.8rem; max-width: 800px; line-height: 1.6; color: #a3b18a; background: #000; padding:20px; border-radius:12px; border: 4px solid #4a3f35;"></p>
+        <div style="margin: 40px; font-family:'DungGeunMo', sans-serif; font-size: 2.5rem; background:#333; padding:20px; border-radius:12px;">
+            최종 예금 잔고: <span id="ending-money" style="color: #f4a261;">0</span> G<br>
+            토양 누적 맹독: <span id="ending-pollution" style="color: #e63946;">0</span> (500 이상 파산)
+        </div>
+        <button onclick="GameManager.resetSave()" style="padding: 20px 40px; font-family:'DungGeunMo', sans-serif; font-size: 2rem; background: #2a9d8f; color: white; border: 4px solid #fff; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 8px 0 #1b655c;" onmouseover="this.style.background='#21867a'" onmouseout="this.style.background='#2a9d8f'">윤회 (새로운 시작)</button>
+    </div>
+
+    <!-- 스타듀밸리 대화창 오버레이 -->
+    <div id="dialogue-overlay" style="display: none;">
+        <div id="dialogue-box">
+            <div id="dialogue-portrait-container">
+                <img id="dialogue-portrait" src="" alt="Portrait">
+            </div>
+            <div id="dialogue-content">
+                <h3 id="dialogue-speaker">시스템</h3>
+                <p id="dialogue-text">대화 스크립트가 로딩됩니다...</p>
+                <div id="dialogue-continue">👉 계속 진행하려면 화면을 클릭하세요</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
